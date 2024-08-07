@@ -2013,7 +2013,14 @@ void wofi_init(struct map* _config) {
 	outer_box = gtk_box_new(outer_orientation, 0);
 	gtk_widget_set_name(outer_box, "outer-box");
 	gtk_container_add(GTK_CONTAINER(window), outer_box);
-	entry = gtk_search_entry_new();
+
+	bool use_search_box = strcmp(config_get(config, "use_search_box", "true"), "true") == 0;
+	if(use_search_box) {
+		entry = gtk_search_entry_new();
+	} else {
+		entry = gtk_entry_new();
+	}
+
 	g_signal_connect(entry, "size-allocate", G_CALLBACK(widget_allocate), NULL);
 
 	gtk_widget_set_name(entry, "input");
