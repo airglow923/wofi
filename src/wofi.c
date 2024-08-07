@@ -573,7 +573,6 @@ static void expand(GtkExpander* expander, gpointer data) {
 static void update_surface_size(void) {
 	if(lines > 0) {
 		height = max_height * lines;
-		height += 5;
 	}
 	if(shell != NULL) {
 		zwlr_layer_surface_v1_set_size(wlr_surface, width, height);
@@ -582,17 +581,7 @@ static void update_surface_size(void) {
 	}
 
 	gtk_window_resize(GTK_WINDOW(window), width, height);
-	GtkAllocation alloc;
-	gtk_widget_get_allocated_size(entry, &alloc, NULL);
-	if(outer_orientation == GTK_ORIENTATION_HORIZONTAL) {
-		if(alloc.width > 0) {
-			gtk_widget_set_size_request(scroll, width - alloc.width, height);
-		}
-	} else {
-		if(alloc.height > 0) {
-			gtk_widget_set_size_request(scroll, width, height - alloc.height);
-		}
-	}
+	gtk_widget_set_size_request(scroll, width, height);
 }
 
 static void widget_allocate(GtkWidget* widget, GdkRectangle* allocation, gpointer data) {
