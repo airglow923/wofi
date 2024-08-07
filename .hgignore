@@ -4,5 +4,3 @@
 ^\.hgrepos$
 ^build$
 ^debug$
-^Debug$
-^noasan$
