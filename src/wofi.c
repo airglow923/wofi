@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2019-2024 Scoopta
+ *  Copyright (C) 2019-2025 Scoopta
  *  This file is part of Wofi
  *  Wofi is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -79,6 +79,7 @@ static bool mod_ctrl;
 static char* terminal;
 static GtkOrientation outer_orientation;
 static bool exec_search;
+static bool no_custom_entry;
 static struct map* modes;
 static enum matching_mode matching;
 static bool insensitive;
@@ -1570,7 +1571,7 @@ static void* load_mode(char* _mode, char* name, struct mode* mode_ptr, struct ma
 		arg_count = get_arg_count();
 	}
 
-	if(mode == NULL && no_entry != NULL && no_entry()) {
+	if(mode == NULL && !no_custom_entry && no_entry != NULL && no_entry()) {
 		mode = mode_ptr->name;
 	}
 
@@ -1787,6 +1788,7 @@ void wofi_init(struct map* _config) {
 	terminal = map_get(config, "term");
 	char* password_char = map_get(config, "password_char");
 	exec_search = strcmp(config_get(config, "exec_search", "false"), "true") == 0;
+	no_custom_entry = strcmp(config_get(config, "no_custom_entry", "false"), "true") == 0;
 	bool hide_scroll = strcmp(config_get(config, "hide_scroll", "false"), "true") == 0;
 	matching = config_get_mnemonic(config, "matching", "contains", 3, "contains", "multi-contains", "fuzzy");
 	insensitive = strcmp(config_get(config, "insensitive", "false"), "true") == 0;

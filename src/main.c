@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2019-2020 Scoopta
+ *  Copyright (C) 2019-2025 Scoopta
  *  This file is part of Wofi
  *  Wofi is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -82,6 +82,7 @@ static void print_usage(char** argv) {
 	printf("--term\t\t\t-t\tSpecifies the terminal to use when running in a term\n");
 	printf("--password\t\t-P\tRuns in password mode\n");
 	printf("--exec-search\t\t-e\tMakes enter always use the search contents not the first result\n");
+	printf("--no-custom-entry\t-E\tOnly entries will be submitted to modes, never the content of the search box\n");
 	printf("--hide-scroll\t\t-b\tHides the scroll bars\n");
 	printf("--matching\t\t-M\tSets the matching method, default is contains\n");
 	printf("--insensitive\t\t-i\tAllows case insensitive searching\n");
@@ -342,6 +343,12 @@ int main(int argc, char** argv) {
 			.val = 'e'
 		},
 		{
+			.name = "no-custom-entry",
+			.has_arg = no_argument,
+			.flag = NULL,
+			.val = 'E'
+		},
+		{
 			.name = "hide-scroll",
 			.has_arg = no_argument,
 			.flag = NULL,
@@ -455,6 +462,7 @@ int main(int argc, char** argv) {
 	char* terminal = NULL;
 	char* password_char = "false";
 	char* exec_search = NULL;
+	char* no_custom_entry = NULL;
 	char* hide_scroll = NULL;
 	char* matching = NULL;
 	char* insensitive = NULL;
@@ -474,7 +482,7 @@ int main(int argc, char** argv) {
 	struct option_node* node;
 
 	int opt;
-	while((opt = getopt_long(argc, argv, "hfc:s:C:dS:W:H:p:x:y:nImk:t:P::ebM:iqvl:aD:L:w:O:GQ:o:r:", opts, NULL)) != -1) {
+	while((opt = getopt_long(argc, argv, "hfc:s:C:dS:W:H:p:x:y:nImk:t:P::eEbM:iqvl:aD:L:w:O:GQ:o:r:", opts, NULL)) != -1) {
 		switch(opt) {
 		case 'h':
 			print_usage(argv);
@@ -537,6 +545,9 @@ int main(int argc, char** argv) {
 			break;
 		case 'e':
 			exec_search = "true";
+			break;
+		case 'E':
+			no_custom_entry = "true";
 			break;
 		case 'b':
 			hide_scroll = "true";
@@ -741,6 +752,9 @@ int main(int argc, char** argv) {
 	}
 	if(exec_search != NULL) {
 		map_put(config, "exec_search", exec_search);
+	}
+	if(no_custom_entry != NULL) {
+		map_put(config, "no_custom_entry", no_custom_entry);
 	}
 	if(hide_scroll != NULL) {
 		map_put(config, "hide_scroll", hide_scroll);
