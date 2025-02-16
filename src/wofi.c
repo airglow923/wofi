@@ -1251,7 +1251,9 @@ static void do_expand(void) {
 }
 
 static void do_hide_search(void) {
-	gtk_widget_set_visible(entry, !gtk_widget_get_visible(entry));
+	bool visible = gtk_widget_get_visible(entry);
+	gtk_widget_set_visible(entry, !visible);
+	gtk_widget_set_sensitive(entry, !visible);
 	update_surface_size();
 }
 
@@ -1750,6 +1752,7 @@ static gboolean do_percent_size_first(gpointer data){
 static gboolean hide_search_first(gpointer data) {
 	(void) data;
 	gtk_widget_set_visible(entry, !hide_search);
+	gtk_widget_set_sensitive(entry, !hide_search);
 	return G_SOURCE_REMOVE;
 }
 
