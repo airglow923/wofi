@@ -1830,7 +1830,7 @@ void wofi_init(struct map* _config) {
 		char* key_default;
 
 		key_default = "Up";
-		char* key_up = (i == 0) ? "Up" : config_get(config, "key_up", key_default);
+		char* key_up = (i == 0) ? key_default : config_get(config, "key_up", key_default);
 		key_default = "Down";
 		char* key_down = (i == 0) ? key_default : config_get(config, "key_down", key_default);
 		key_default = "Left";
