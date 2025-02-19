@@ -4,6 +4,9 @@ wofi \- Key names for custom binds
 
 .SH DESCRIPTION
 This is a list of the key names that can be used for custom binding. These are taken from gdk/gdkkeysyms.h with exception to modifiers.
+
+Modifiers can be attached to keys by prefixing the key with the modifier name separated by a \-. For example Shift\-J or Ctrl\-j. Only one modifier can be used in a given bind.
+
 Certain keys cannot have the shift modifier attached as holding shift while using these keys causes a completely different key press to be registered.
 For example Shift\-j is invalid as holding shift while pressing j changes the key into J so Shift\-J should be registered as the key instead of Shift\-j.
 This is the case with all alphanumeric chars as well as Tab which turns into ISO_Left_Tab.
