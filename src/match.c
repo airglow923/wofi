@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2019-2022 Scoopta
+ *  Copyright (C) 2019-2025 Scoopta
  *  This file is part of Wofi
  *  Wofi is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,9 +15,11 @@
     along with Wofi.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ctype.h>
 #include <match.h>
-#include <string.h>
+
+#include <wchar.h>
+#include <wctype.h>
+#include <stdlib.h>
 
 // leading gap
 #define SCORE_GAP_LEADING -0.005
@@ -48,32 +50,59 @@
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
+static wchar_t* wcscasestr(const wchar_t* haystack, const wchar_t* needle) {
+	wchar_t* ret = NULL;
+
+	size_t needle_idx = 0;
+	for(size_t count = 0; haystack[count] != 0; ++count) {
+		if(towlower(haystack[count]) == towlower(needle[needle_idx])) {
+			if(ret == NULL) {
+				ret = (wchar_t*) haystack + count;
+			}
+			++needle_idx;
+		} else {
+			ret = NULL;
+			needle_idx = 0;
+		}
+
+		if(needle[needle_idx] == 0) {
+			break;
+		}
+	}
+
+	if(needle[needle_idx] != 0) {
+		return NULL;
+	}
+
+	return ret;
+}
+
 // matching
-static bool contains_match(const char* filter, const char* text, bool insensitive) {
-	if(filter == NULL || strcmp(filter, "") == 0) {
+static bool contains_match(const wchar_t* filter, const wchar_t* text, bool insensitive) {
+	if(filter == NULL || wcscmp(filter, L"") == 0) {
 		return true;
 	}
 	if(text == NULL) {
 		return false;
 	}
 	if(insensitive) {
-		return strcasestr(text, filter) != NULL;
+		return wcscasestr(text, filter) != NULL;
 	} else {
-		return strstr(text, filter) != NULL;
+		return wcsstr(text, filter) != NULL;
 	}
 }
 
-static char* strcasechr(const char* s,char c, bool insensitive) {
+static wchar_t* wcscasechr(const wchar_t* s, wchar_t c, bool insensitive) {
 	if(insensitive) {
-		const char accept[3] = {tolower(c), toupper(c), 0};
-		return strpbrk(s, accept);
+		const wchar_t accept[3] = {towlower(c), towupper(c), 0};
+		return wcspbrk(s, accept);
 	} else {
-		return strchr(s, c);
+		return wcschr(s, c);
 	}
 }
 
-static bool fuzzy_match(const char* filter, const char* text, bool insensitive) {
-	if(filter == NULL || strcmp(filter, "") == 0) {
+static bool fuzzy_match(const wchar_t* filter, const wchar_t* text, bool insensitive) {
+	if(filter == NULL || wcscmp(filter, L"") == 0) {
 		return true;
 	}
 	if(text == NULL) {
@@ -82,9 +111,9 @@ static bool fuzzy_match(const char* filter, const char* text, bool insensitive) 
 	// we just check that all the characters (ignoring case) are in the
 	// search text possibly case insensitively in the correct order
 	while(*filter != 0) {
-		char nch = *filter++;
+		wchar_t nch = *filter++;
 
-		if(!(text = strcasechr(text, nch, insensitive))) {
+		if(!(text = wcscasechr(text, nch, insensitive))) {
 			return false;
 		}
 		text++;
@@ -92,19 +121,19 @@ static bool fuzzy_match(const char* filter, const char* text, bool insensitive) 
 	return true;
 }
 
-static bool multi_contains_match(const char* filter, const char* text, bool insensitive) {
-	if(filter == NULL || strcmp(filter, "") == 0) {
+static bool multi_contains_match(const wchar_t* filter, const wchar_t* text, bool insensitive) {
+	if(filter == NULL || wcscmp(filter, L"") == 0) {
 		return true;
 	}
 	if(text == NULL) {
 		return false;
 	}
-	char new_filter[MAX_MULTI_CONTAINS_FILTER_SIZE];
-	strncpy(new_filter, filter, sizeof(new_filter));
-	new_filter[sizeof(new_filter) - 1] = '\0';
-	char* token;
-	char* rest = new_filter;
-	while((token = strtok_r(rest, " ", &rest))) {
+	wchar_t new_filter[MAX_MULTI_CONTAINS_FILTER_SIZE];
+	wcsncpy(new_filter, filter, sizeof(new_filter) / sizeof(wchar_t));
+	new_filter[(sizeof(new_filter) / sizeof(wchar_t)) - 1] = L'\0';
+	wchar_t* token;
+	wchar_t* rest = new_filter;
+	while((token = wcstok(rest, L" ", &rest))) {
 		if(contains_match(token, text, insensitive) == false) {
 			return false;
 		}
@@ -114,16 +143,34 @@ static bool multi_contains_match(const char* filter, const char* text, bool inse
 
 bool match_for_matching_mode(const char* filter, const char* text,
 							 enum matching_mode matching, bool insensitive) {
+	size_t filter_len = filter == NULL ? 1 : mbstowcs(NULL, filter, 0) + 1;
+	size_t text_len = text == NULL ? 1 : mbstowcs(NULL, text, 0) + 1;
+
+	wchar_t wfilter[filter_len];
+	wchar_t wtext[text_len];
+
+	if(filter != NULL) {
+		mbstowcs(wfilter, filter, filter_len);
+	} else {
+		wfilter[0] = 0;
+	}
+
+	if(text != NULL) {
+		mbstowcs(wtext, text, text_len);
+	} else {
+		wtext[0] = 0;
+	}
+
 	bool retval;
 	switch(matching) {
 	case MATCHING_MODE_MULTI_CONTAINS:
-		retval = multi_contains_match(filter, text, insensitive);
+		retval = multi_contains_match(wfilter, wtext, insensitive);
 		break;
 	case MATCHING_MODE_CONTAINS:
-		retval = contains_match(filter, text, insensitive);
+		retval = contains_match(wfilter, wtext, insensitive);
 		break;
 	case MATCHING_MODE_FUZZY:
-		retval = fuzzy_match(filter, text, insensitive);
+		retval = fuzzy_match(wfilter, wtext, insensitive);
 		break;
 	default:
 		return false;
@@ -134,25 +181,25 @@ bool match_for_matching_mode(const char* filter, const char* text,
 // end matching
 
 // fuzzy matching
-static void precompute_bonus(const char* haystack, score_t* match_bonus) {
+static void precompute_bonus(const wchar_t* haystack, score_t* match_bonus) {
 	/* Which positions are beginning of words */
-	int m = strlen(haystack);
-	char last_ch = '\0';
+	int m = wcslen(haystack);
+	wchar_t last_ch = L'\0';
 	for(int i = 0; i < m; i++) {
-		char ch = haystack[i];
+		wchar_t ch = haystack[i];
 
 		score_t score = 0;
-		if(isalnum(ch)) {
-			if(!last_ch || last_ch == '/') {
+		if(iswalnum(ch)) {
+			if(!last_ch || last_ch == L'/') {
 				score = SCORE_MATCH_SLASH;
-			} else if(last_ch == '-' || last_ch == '_' ||
-					   last_ch == ' ') {
+			} else if(last_ch == L'-' || last_ch == L'_' ||
+					   last_ch == L' ') {
 				score = SCORE_MATCH_WORD;
-			} else if(last_ch >= 'a' && last_ch <= 'z' &&
-					   ch >= 'A' && ch <= 'Z') {
+			} else if(last_ch >= L'a' && last_ch <= L'z' &&
+					   ch >= L'A' && ch <= L'Z') {
 				/* CamelCase */
 				score = SCORE_MATCH_CAPITAL;
-			} else if(last_ch == '.') {
+			} else if(last_ch == L'.') {
 				score = SCORE_MATCH_DOT;
 			}
 		}
@@ -162,9 +209,9 @@ static void precompute_bonus(const char* haystack, score_t* match_bonus) {
 	}
 }
 
-static inline bool match_with_case(char a, char b, bool insensitive) {
+static inline bool match_with_case(wchar_t a, wchar_t b, bool insensitive) {
 	if(insensitive) {
-		return tolower(a) == tolower(b);
+		return towlower(a) == towlower(b);
 	} else {
 		return a == b;
 	}
@@ -172,7 +219,7 @@ static inline bool match_with_case(char a, char b, bool insensitive) {
 
 static inline void match_row(int row, score_t* curr_D, score_t* curr_M,
 							 const score_t* last_D, const score_t* last_M,
-							 const char* needle, const char* haystack, int n, int m, score_t* match_bonus, bool insensitive) {
+							 const wchar_t* needle, const wchar_t* haystack, int n, int m, score_t* match_bonus, bool insensitive) {
 	int i = row;
 
 	score_t prev_score = SCORE_MIN;
@@ -228,12 +275,12 @@ static inline void match_row(int row, score_t* curr_D, score_t* curr_M,
 // Also, the reference algorithm does not take into account case sensitivity
 // which has been implemented here.
 
-static score_t fuzzy_score(const char* haystack, const char* needle, bool insensitive) {
+static score_t fuzzy_score(const wchar_t* haystack, const wchar_t* needle, bool insensitive) {
 	if(*needle == 0)
 		return SCORE_MIN;
 
-	int n = strlen(needle);
-	int m = strlen(haystack);
+	int n = wcslen(needle);
+	int m = wcslen(haystack);
 	score_t match_bonus[m];
 	precompute_bonus(haystack, match_bonus);
 
@@ -278,7 +325,7 @@ static score_t fuzzy_score(const char* haystack, const char* needle, bool insens
 // end fuzzy matching
 
 // sorting
-static int fuzzy_sort(const char* text1, const char* text2, const char* filter, bool insensitive) {
+static int fuzzy_sort(const wchar_t* text1, const wchar_t* text2, const wchar_t* filter, bool insensitive) {
 	bool match1 = fuzzy_match(filter, text1, insensitive);
 	bool match2 = fuzzy_match(filter, text2, insensitive);
 	// both filters match do fuzzy scoring
@@ -309,7 +356,7 @@ static int fuzzy_sort(const char* text1, const char* text2, const char* filter, 
 
 // we sort based on how early in the string all the matches are.
 // if there are matches for each.
-static int multi_contains_sort(const char* text1, const char* text2, const char* filter, bool insensitive) {
+static int multi_contains_sort(const wchar_t* text1, const wchar_t* text2, const wchar_t* filter, bool insensitive) {
 	// sum of string positions of each match
 	int t1_count = 0;
 	int t2_count = 0;
@@ -317,20 +364,20 @@ static int multi_contains_sort(const char* text1, const char* text2, const char*
 	bool t1_match = true;
 	bool t2_match = true;
 
-	char new_filter[MAX_MULTI_CONTAINS_FILTER_SIZE];
-	strncpy(new_filter, filter, sizeof(new_filter));
-	new_filter[sizeof(new_filter) - 1] = '\0';
+	wchar_t new_filter[MAX_MULTI_CONTAINS_FILTER_SIZE];
+	wcsncpy(new_filter, filter, sizeof(new_filter) / sizeof(wchar_t));
+	new_filter[(sizeof(new_filter) / sizeof(wchar_t)) - 1] = L'\0';
 
-	char* token;
-	char* rest = new_filter;
-	while((token = strtok_r(rest, " ", &rest))) {
-		char* str1, *str2;
+	wchar_t* token;
+	wchar_t* rest = new_filter;
+	while((token = wcstok(rest, L" ", &rest))) {
+		wchar_t* str1, *str2;
 		if(insensitive) {
-			str1 = strcasestr(text1, token);
-			str2 = strcasestr(text2, token);
+			str1 = wcscasestr(text1, token);
+			str2 = wcscasestr(text2, token);
 		} else {
-			str1 = strstr(text1, token);
-			str2 = strstr(text2, token);
+			str1 = wcsstr(text1, token);
+			str2 = wcsstr(text2, token);
 		}
 		t1_match = t1_match && str1 != NULL;
 		t2_match = t2_match && str2 != NULL;
@@ -355,15 +402,15 @@ static int multi_contains_sort(const char* text1, const char* text2, const char*
 		return 0;
 	}
 }
-static int contains_sort(const char* text1, const char* text2, const char* filter, bool insensitive) {
-	char* str1, *str2;
+static int contains_sort(const wchar_t* text1, const wchar_t* text2, const wchar_t* filter, bool insensitive) {
+	wchar_t* str1, *str2;
 
 	if(insensitive) {
-		str1 = strcasestr(text1, filter);
-		str2 = strcasestr(text2, filter);
+		str1 = wcscasestr(text1, filter);
+		str2 = wcscasestr(text2, filter);
 	} else {
-		str1 = strstr(text1, filter);
-		str2 = strstr(text2, filter);
+		str1 = wcsstr(text1, filter);
+		str2 = wcsstr(text2, filter);
 	}
 	bool tx1 = str1 == text1;
 	bool tx2 = str2 == text2;
@@ -389,16 +436,42 @@ static int contains_sort(const char* text1, const char* text2, const char* filte
 
 int sort_for_matching_mode(const char* text1, const char* text2, int fallback,
 						   enum matching_mode match_type, const char* filter, bool insensitive) {
+	size_t text1_len = text1 == NULL ? 1 : mbstowcs(NULL, text1, 0) + 1;
+	size_t text2_len = text2 == NULL ? 1 : mbstowcs(NULL, text2, 0) + 1;
+	size_t filter_len = filter == NULL ? 1 : mbstowcs(NULL, filter, 0) + 1;
+
+	wchar_t wtext1[text1_len];
+	wchar_t wtext2[text2_len];
+	wchar_t wfilter[filter_len];
+
+	if(text1 != NULL) {
+		mbstowcs(wtext1, text1, text1_len);
+	} else {
+		wtext1[0] = 0;
+	}
+
+	if(text2 != NULL) {
+		mbstowcs(wtext2, text2, text2_len);
+	} else {
+		wtext2[0] = 0;
+	}
+
+	if(filter != NULL) {
+		mbstowcs(wfilter, filter, filter_len);
+	} else {
+		wfilter[0] = 0;
+	}
+
 	int primary = 0;
 	switch(match_type) {
 	case MATCHING_MODE_MULTI_CONTAINS:
-		primary = multi_contains_sort(text1, text2, filter, insensitive);
+		primary = multi_contains_sort(wtext1, wtext2, wfilter, insensitive);
 		break;
 	case MATCHING_MODE_CONTAINS:
-		primary = contains_sort(text1, text2, filter, insensitive);
+		primary = contains_sort(wtext1, wtext2, wfilter, insensitive);
 		break;
 	case MATCHING_MODE_FUZZY:
-		primary = fuzzy_sort(text1, text2, filter, insensitive);
+		primary = fuzzy_sort(wtext1, wtext2, wfilter, insensitive);
 		break;
 	default:
 		return 0;
