@@ -195,8 +195,7 @@ static void precompute_bonus(const wchar_t* haystack, score_t* match_bonus) {
 			} else if(last_ch == L'-' || last_ch == L'_' ||
 					   last_ch == L' ') {
 				score = SCORE_MATCH_WORD;
-			} else if(last_ch >= L'a' && last_ch <= L'z' &&
-					   ch >= L'A' && ch <= L'Z') {
+			} else if(iswlower(last_ch) && iswupper(ch)) {
 				/* CamelCase */
 				score = SCORE_MATCH_CAPITAL;
 			} else if(last_ch == L'.') {
