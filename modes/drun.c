@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2019-2024 Scoopta
+ *  Copyright (C) 2019-2025 Scoopta
  *  This file is part of Wofi
  *  Wofi is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 #include <gtk/gtk.h>
 #include <gio/gdesktopappinfo.h>
 
-static const char* arg_names[] = {"print_command", "display_generic", "disable_prime", "print_desktop_file"};
+static const char* arg_names[] = {"print_command", "display_generic", "disable_prime", "print_desktop_file", "ignore_metadata"};
 
 static struct mode* mode;
 
@@ -45,6 +45,7 @@ static bool print_command;
 static bool display_generic;
 static bool disable_prime;
 static bool print_desktop_file;
+static bool ignore_metadata;
 
 static char* get_search_text(char* file) {
 	GDesktopAppInfo* info = g_desktop_app_info_new_from_filename(file);
@@ -65,12 +66,19 @@ static char* get_search_text(char* file) {
 		}
 	}
 
-	char* ret = utils_concat(7, name, file,
-			exec == NULL ? "" : exec,
-			description == NULL ? "" : description,
-			categories == NULL ? "" : categories,
-			keywords_str,
-			generic_name == NULL ? "" : generic_name);
+	char* ret;
+
+	if(ignore_metadata) {
+		ret = strdup(name);
+	} else {
+		ret = utils_concat(7, name, file,
+							exec == NULL ? "" : exec,
+							description == NULL ? "" : description,
+							categories == NULL ? "" : categories,
+							keywords_str,
+							generic_name == NULL ? "" : generic_name);
+	}
+
 	free(keywords_str);
 	return ret;
 }
@@ -340,6 +348,7 @@ void wofi_drun_init(struct mode* this, struct map* config) {
 	display_generic = strcmp(config_get(config, "display_generic", "false"), "true") == 0;
 	disable_prime = strcmp(config_get(config, "disable_prime", "false"), "true") == 0;
 	print_desktop_file = strcmp(config_get(config, "print_desktop_file", "false"), "true") == 0;
+	ignore_metadata = strcmp(config_get(config, "ignore_metadata", "false"), "true") == 0;
 
 	entries = map_init();
 	struct wl_list* cache = wofi_read_cache(mode);

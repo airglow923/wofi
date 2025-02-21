@@ -59,6 +59,9 @@ If true then wofi will ignore the PrefersNonDefaultGPU desktop variable, specifi
 .TP
 .B print_desktop_file=\fIBOOL\fR
 If true the path to the desktop file and the name of the corresponding action(if present) will be printed to stdout instead of invoking it, default is false.
+.TP
+.B ignore_metadata=\fIBOOL\fR
+If true only the application's name will be searched rather than the normal behavior of searching a large amount of metadata, including category and description, default is false.
 
 .SH DRUN
 When images are enabled drun mode will pull icon themes however being a GTK app it's possible you'll need to run gtk\-update\-icon\-cache to get them to apply.
