@@ -1753,6 +1753,7 @@ static gboolean hide_search_first(gpointer data) {
 	(void) data;
 	gtk_widget_set_visible(entry, !hide_search);
 	gtk_widget_set_sensitive(entry, !hide_search);
+	update_surface_size();
 	return G_SOURCE_REMOVE;
 }
 
