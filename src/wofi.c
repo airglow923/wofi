@@ -1499,6 +1499,8 @@ static gboolean focus(GtkWidget* widget, GdkEvent* event, gpointer data) {
 		gtk_widget_set_state_flags(widget, GTK_STATE_FLAG_FOCUSED, TRUE);
 	} else {
 		gtk_widget_set_state_flags(widget, GTK_STATE_FLAG_NORMAL, TRUE);
+		if (data != NULL && strcmp(config_get(data, "close_on_focus_loss", "false"), "true") == 0)
+        	gtk_widget_destroy(widget);
 	}
 	return FALSE;
 }
@@ -2061,7 +2063,7 @@ void wofi_init(struct map* _config) {
 	g_signal_connect(entry, "activate", G_CALLBACK(activate_search), NULL);
 	g_signal_connect(window, "key-press-event", G_CALLBACK(key_press), NULL);
 	g_signal_connect(window, "focus-in-event", G_CALLBACK(focus), NULL);
-	g_signal_connect(window, "focus-out-event", G_CALLBACK(focus), NULL);
+	g_signal_connect(window, "focus-out-event", G_CALLBACK(focus), config);
 	g_signal_connect(entry, "focus-in-event", G_CALLBACK(focus_entry), NULL);
 	g_signal_connect(entry, "focus-out-event", G_CALLBACK(focus_entry), NULL);
 	g_signal_connect(window, "destroy", G_CALLBACK(do_exit), NULL);
