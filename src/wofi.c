@@ -1797,7 +1797,7 @@ void wofi_init(struct map* _config) {
 	exec_search = strcmp(config_get(config, "exec_search", "false"), "true") == 0;
 	no_custom_entry = strcmp(config_get(config, "no_custom_entry", "false"), "true") == 0;
 	bool hide_scroll = strcmp(config_get(config, "hide_scroll", "false"), "true") == 0;
-	matching = config_get_mnemonic(config, "matching", "contains", 3, "contains", "multi-contains", "fuzzy");
+	matching = config_get_mnemonic(config, "matching", "contains", 4, "contains", "strict-contains", "multi-contains", "fuzzy");
 	insensitive = strcmp(config_get(config, "insensitive", "false"), "true") == 0;
 	parse_search = strcmp(config_get(config, "parse_search", "false"), "true") == 0;
 	location = config_get_mnemonic(config, "location", "center", 18,

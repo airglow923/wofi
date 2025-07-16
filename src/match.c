@@ -167,6 +167,7 @@ bool match_for_matching_mode(const char* filter, const char* text,
 		retval = multi_contains_match(wfilter, wtext, insensitive);
 		break;
 	case MATCHING_MODE_CONTAINS:
+	case MATCHING_MODE_STRICT_CONTAINS:
 		retval = contains_match(wfilter, wtext, insensitive);
 		break;
 	case MATCHING_MODE_FUZZY:
@@ -401,6 +402,7 @@ static int multi_contains_sort(const wchar_t* text1, const wchar_t* text2, const
 		return 0;
 	}
 }
+
 static int contains_sort(const wchar_t* text1, const wchar_t* text2, const wchar_t* filter, bool insensitive) {
 	wchar_t* str1, *str2;
 
@@ -423,6 +425,30 @@ static int contains_sort(const wchar_t* text1, const wchar_t* text2, const wchar
 	} else if(tx2) {
 		return 1;
 	} else if(txc1 && txc2) {
+		return 0;
+	} else if(txc1) {
+		return -1;
+	} else if(txc2) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+static int strict_contains_sort(const wchar_t* text1, const wchar_t* text2, const wchar_t* filter, bool insensitive) {
+	wchar_t* str1, *str2;
+
+	if(insensitive) {
+		str1 = wcscasestr(text1, filter);
+		str2 = wcscasestr(text2, filter);
+	} else {
+		str1 = wcsstr(text1, filter);
+		str2 = wcsstr(text2, filter);
+	}
+	bool txc1 = str1 != NULL;
+	bool txc2 = str2 != NULL;
+
+	if(txc1 && txc2) {
 		return 0;
 	} else if(txc1) {
 		return -1;
@@ -468,6 +494,9 @@ int sort_for_matching_mode(const char* text1, const char* text2, int fallback,
 		break;
 	case MATCHING_MODE_CONTAINS:
 		primary = contains_sort(wtext1, wtext2, wfilter, insensitive);
+		break;
+	case MATCHING_MODE_STRICT_CONTAINS:
+		primary = strict_contains_sort(wtext1, wtext2, wfilter, insensitive);
 		break;
 	case MATCHING_MODE_FUZZY:
 		primary = fuzzy_sort(wtext1, wtext2, wfilter, insensitive);
