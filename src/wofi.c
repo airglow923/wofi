@@ -1499,8 +1499,9 @@ static gboolean focus(GtkWidget* widget, GdkEvent* event, gpointer data) {
 		gtk_widget_set_state_flags(widget, GTK_STATE_FLAG_FOCUSED, TRUE);
 	} else {
 		gtk_widget_set_state_flags(widget, GTK_STATE_FLAG_NORMAL, TRUE);
-		if (data != NULL && strcmp(config_get(data, "close_on_focus_loss", "false"), "true") == 0)
+		if (data != NULL && strcmp(config_get(data, "close_on_focus_loss", "false"), "true") == 0) {
         	gtk_widget_destroy(widget);
+		}
 	}
 	return FALSE;
 }
