@@ -575,6 +575,9 @@ static void update_surface_size(void) {
 	if(lines > 0) {
 		height = max_height * lines;
 	}
+	if(width == 0 || height == 0) {
+		return;
+	}
 	if(shell != NULL) {
 		zwlr_layer_surface_v1_set_size(wlr_surface, width, height);
 		wl_surface_commit(wl_surface);
