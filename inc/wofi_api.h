@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2020-2024 Scoopta
+ *  Copyright (C) 2020-2025 Scoopta
  *  This file is part of Wofi
  *  Wofi is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,6 +47,8 @@ char* wofi_get_dso_path(struct mode* mode);
 bool wofi_allow_images(void);
 
 bool wofi_allow_markup(void);
+
+bool wofi_no_custom_entry(void);
 
 uint64_t wofi_get_image_size(void);
 

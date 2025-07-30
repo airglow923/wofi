@@ -971,6 +971,10 @@ bool wofi_allow_markup(void) {
 	return allow_markup;
 }
 
+bool wofi_no_custom_entry(void) {
+	return no_custom_entry;
+}
+
 uint64_t wofi_get_image_size(void) {
 	return image_size;
 }
