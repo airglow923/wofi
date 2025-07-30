@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2019-2024 Scoopta
+ *  Copyright (C) 2019-2025 Scoopta
  *  This file is part of Wofi
  *  Wofi is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,7 +65,9 @@ void wofi_dmenu_init(struct mode* this, struct map* config) {
 	if(!isatty(STDIN_FILENO)) {
 		char* line = NULL;
 		size_t size = 0;
+		bool has_line = false;
 		while(getdelim(&line, &size, separator[0], stdin) != -1) {
+			has_line = true;
 			char* delim = strchr(line, separator[0]);
 			if(delim != NULL) {
 				*delim = 0;
@@ -76,6 +78,12 @@ void wofi_dmenu_init(struct mode* this, struct map* config) {
 			map_put(entry_map, line, "true");
 		}
 		free(line);
+
+		if(!has_line && wofi_no_custom_entry()) {
+			wofi_exit(0);
+		}
+	} else if(wofi_no_custom_entry()) {
+		wofi_exit(0);
 	}
 
 	if(!print_line_num) {
