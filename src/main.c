@@ -99,6 +99,7 @@ static void print_usage(char** argv) {
 	printf("--monitor\t\t-o\tSets the monitor to open on\n");
 	printf("--pre-display-cmd\t-r\tRuns command for the displayed entries, without changing the output. %%s for the real string\n");
   	printf("--hide-search\t\t-j\tHides the search bar\n");
+	printf("--title\t\t\t-T\tShows a menu title\n");
 	exit(0);
 }
 
@@ -446,6 +447,12 @@ int main(int argc, char** argv) {
 			.val = 'j'
 		},
 		{
+			.name = "title",
+			.has_arg = required_argument,
+			.flag = NULL,
+			.val = 'T'
+		},
+		{
 			.name = NULL,
 			.has_arg = 0,
 			.flag = NULL,
@@ -484,13 +491,14 @@ int main(int argc, char** argv) {
 	char* monitor = NULL;
 	char* pre_display_cmd = NULL;
   	char* hide_search = NULL;
+	char* title = NULL;
 
 	struct wl_list options;
 	wl_list_init(&options);
 	struct option_node* node;
 
 	int opt;
-	while((opt = getopt_long(argc, argv, "hfc:s:C:dS:W:H:p:x:y:nImk:t:P::eEbM:iqvl:aD:L:w:O:GQ:o:r:j", opts, NULL)) != -1) {
+	while((opt = getopt_long(argc, argv, "hfc:s:C:dS:W:H:p:x:y:nImk:t:P::eEbM:iqvl:aD:L:w:O:GQ:o:r:jT:", opts, NULL)) != -1) {
 		switch(opt) {
 		case 'h':
 			print_usage(argv);
@@ -607,6 +615,9 @@ int main(int argc, char** argv) {
 			break;
 		case 'j':
 			hide_search = "true";
+			break;
+		case 'T':
+			title = optarg;
 			break;
 		}
 	}
@@ -805,6 +816,9 @@ int main(int argc, char** argv) {
 	}
   	if(hide_search != NULL) {
 		map_put(config, "hide_search", hide_search);
+	}
+	if(title != NULL) {
+		map_put(config, "title", title);
 	}
 
 	struct sigaction sigact = {0};

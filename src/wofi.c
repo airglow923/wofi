@@ -67,7 +67,7 @@ enum sort_order {
 static uint64_t width, height;
 static char* x, *y;
 static struct zwlr_layer_shell_v1* shell = NULL;
-static GtkWidget* window, *outer_box, *scroll, *entry, *inner_box, *previous_selection = NULL;
+static GtkWidget* window, *outer_box, *scroll, *entry, *inner_box, *previous_selection, *title_label = NULL;
 static gchar* filter = NULL;
 static char* mode = NULL;
 static bool allow_images, allow_markup;
@@ -111,6 +111,7 @@ static char* pre_display_cmd = NULL;
 static bool pre_display_exec = false;
 static bool single_click = false;
 static bool hide_search = false;
+static char* title = NULL;
 static GdkModifierType shift_mask = GDK_SHIFT_MASK;
 static GdkModifierType ctrl_mask = GDK_CONTROL_MASK;
 static GdkModifierType alt_mask = GDK_MOD1_MASK;
@@ -1826,6 +1827,7 @@ void wofi_init(struct map* _config) {
 	pre_display_cmd = map_get(config, "pre_display_cmd");
 	pre_display_exec = strcmp(config_get(config, "pre_display_exec", "false"), "true") == 0;
 	single_click = strcmp(config_get(config, "single_click", "false"), "true") == 0;
+	title = config_get(config, "title", NULL);
 
 	keys = map_init_void();
 	mods = map_init_void();
@@ -2018,6 +2020,12 @@ void wofi_init(struct map* _config) {
 	outer_box = gtk_box_new(outer_orientation, 0);
 	gtk_widget_set_name(outer_box, "outer-box");
 	gtk_container_add(GTK_CONTAINER(window), outer_box);
+
+	if (title) {
+		title_label = gtk_label_new(title);
+		gtk_widget_set_name(title_label, "title");
+		gtk_container_add(GTK_CONTAINER(outer_box), title_label);
+	}
 
 	bool use_search_box = strcmp(config_get(config, "use_search_box", "true"), "true") == 0;
 	if(use_search_box) {
