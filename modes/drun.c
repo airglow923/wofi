@@ -29,7 +29,7 @@
 #include <gtk/gtk.h>
 #include <gio/gdesktopappinfo.h>
 
-static const char* arg_names[] = {"print_command", "display_generic", "disable_prime", "print_desktop_file", "ignore_metadata"};
+static const char* arg_names[] = {"print_command", "display_generic", "disable_prime", "print_desktop_file", "ignore_metadata", "terminal_fix"};
 
 static struct mode* mode;
 
@@ -46,6 +46,7 @@ static bool display_generic;
 static bool disable_prime;
 static bool print_desktop_file;
 static bool ignore_metadata;
+static bool terminal_fix;
 
 static char* get_search_text(char* file) {
 	GDesktopAppInfo* info = g_desktop_app_info_new_from_filename(file);
@@ -349,6 +350,7 @@ void wofi_drun_init(struct mode* this, struct map* config) {
 	disable_prime = strcmp(config_get(config, "disable_prime", "false"), "true") == 0;
 	print_desktop_file = strcmp(config_get(config, "print_desktop_file", "false"), "true") == 0;
 	ignore_metadata = strcmp(config_get(config, "ignore_metadata", "false"), "true") == 0;
+	terminal_fix = strcmp(config_get(config, "terminal_fix", "false"), "true") == 0;
 
 	entries = map_init();
 	struct wl_list* cache = wofi_read_cache(mode);
@@ -452,6 +454,14 @@ static char* get_cmd(GAppInfo* info) {
 
 void wofi_drun_exec(const gchar* cmd) {
 	GDesktopAppInfo* info = g_desktop_app_info_new_from_filename(cmd);
+  if (terminal_fix) {
+    char* terminal = g_desktop_app_info_get_string(info, "Terminal");
+    if (strcmp(terminal, "true") == 0) {
+      char* cmd = get_cmd(G_APP_INFO(info));
+      wofi_term_run(cmd);
+    }
+  }
+
 	if(G_IS_DESKTOP_APP_INFO(info)) {
 		wofi_write_cache(mode, cmd);
 		if(print_command) {

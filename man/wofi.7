@@ -62,6 +62,13 @@ If true the path to the desktop file and the name of the corresponding action(if
 .TP
 .B ignore_metadata=\fIBOOL\fR
 If true only the application's name will be searched rather than the normal behavior of searching a large amount of metadata, including category and description, default is false.
+.TP
+.B terminal_fix=\fIBOOL\fR
+If true then wofi will read the value of the Terminal variable in the desktop file. If the value of Terminal is set to true, then wofi will use \fBwofi_term_exec()\fR to launch the application, instead of \fBg_app_info_launch_default_for_uri()\fR. The default value for \fBterminal_fix\fR is \fBfalse\fR. 
+.br
+
+.br
+Setting \fBterminal_fix=true\fR will respect the \fBterm=TERM\fR configuration option (see \fBwofi\fR(5)).
 
 .SH DRUN
 When images are enabled drun mode will pull icon themes however being a GTK app it's possible you'll need to run gtk\-update\-icon\-cache to get them to apply.

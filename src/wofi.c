@@ -45,7 +45,7 @@
 #define _UNUSED(x) (void)(x)
 #define CUSTOM_KEY_NUMBER 20
 
-static const char* terminals[] = {"kitty", "alacritty", "wezterm", "foot", "termite", "gnome-terminal", "weston-terminal"};
+static const char* terminals[] = {"kitty", "alacritty", "wezterm", "foot", "termite", "gnome-terminal", "weston-terminal", "footclient"};
 
 enum location {
 	LOCATION_CENTER,
