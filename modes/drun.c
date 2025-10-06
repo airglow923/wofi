@@ -454,13 +454,13 @@ static char* get_cmd(GAppInfo* info) {
 
 void wofi_drun_exec(const gchar* cmd) {
 	GDesktopAppInfo* info = g_desktop_app_info_new_from_filename(cmd);
-  if (terminal_fix) {
-    char* terminal = g_desktop_app_info_get_string(info, "Terminal");
-    if (strcmp(terminal, "true") == 0) {
-      char* cmd = get_cmd(G_APP_INFO(info));
-      wofi_term_run(cmd);
-    }
-  }
+	if (terminal_fix) {
+		bool terminal = g_desktop_app_info_get_boolean(info, "Terminal");
+		if (terminal) {
+			char* cmd = get_cmd(G_APP_INFO(info));
+			wofi_term_run(cmd);
+		}
+	}
 
 	if(G_IS_DESKTOP_APP_INFO(info)) {
 		wofi_write_cache(mode, cmd);
